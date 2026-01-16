@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]
+then
+  echo "Usage: $0 <servo_binary> <url> [resolution]"
+  exit 1
+fi
+
+servo="$1"
+url="$2"
+
+servo_command="$servo --headless --webdriver=7002"
+if [ $# -eq 3 ]
+then
+  servo_command="$servo_command --screen-size \"${3}\""
+fi
+servo_command="$servo_command \"$url\""
+
+sh -c "exec $servo_command" &
+pid=$!
+echo "Started Servo with PID $pid"
+
+sleep 0.25
+
+session_id=$(curl -s -H 'Content-Type: application/json' -X POST -d '{"capabilities": {}}' http://127.0.0.1:7002/session | jq -r ".value.sessionId")
+echo "Get WebDiver session ID: $session_id"
+
+echo "Taking screenshot and storing it at: screenshot.png"
+curl -s http://127.0.0.1:7002/session/${session_id}/screenshot | jq -r ".value" | base64 -d > screenshot.png
+
+echo "Killing Servo with PID $pid"
+kill -9 $pid
+
