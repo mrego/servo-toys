@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "webdriverio": "^9.23.2"
+  },
+  "type": "module"
+}
